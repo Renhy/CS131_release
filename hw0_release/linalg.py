@@ -16,7 +16,7 @@ def dot_product(a, b):
     """
     out = None
     ### YOUR CODE HERE
-    pass
+    out = np.dot(a,b)
     ### END YOUR CODE
     return out
 
@@ -37,7 +37,7 @@ def complicated_matrix_function(M, a, b):
     """
     out = None
     ### YOUR CODE HERE
-    pass
+    out = np.dot(a,b) * (M.dot(a.T))
     ### END YOUR CODE
 
     return out
@@ -61,7 +61,7 @@ def svd(M):
     s = None
     v = None
     ### YOUR CODE HERE
-    pass
+    u, s, v = np.linalg.svd(M)
     ### END YOUR CODE
 
     return u, s, v
@@ -82,7 +82,7 @@ def get_singular_values(M, k):
     """
     singular_values = None
     ### YOUR CODE HERE
-    pass
+    singular_values = svd(M)[1][:k]
     ### END YOUR CODE
     return singular_values
 
@@ -100,7 +100,8 @@ def eigen_decomp(M):
     w = None
     v = None
     ### YOUR CODE HERE
-    pass
+    w = np.linalg.eig(M)[1]
+    v = np.linalg.eig(M)[0]
     ### END YOUR CODE
     return w, v
 
@@ -125,5 +126,7 @@ def get_eigen_values_and_vectors(M, k):
     eigenvectors = []
     ### YOUR CODE HERE
     pass
+    eigenvalues = np.linalg.eig(M)[0][:k]
+    eigenvectors = np.linalg.eig(M)[1][:k]
     ### END YOUR CODE
     return eigenvalues, eigenvectors

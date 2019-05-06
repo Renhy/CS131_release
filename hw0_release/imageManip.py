@@ -20,7 +20,7 @@ def load(image_path):
 
     ### YOUR CODE HERE
     # Use skimage io.imread
-    pass
+    out = io.imread(image_path)
     ### END YOUR CODE
 
     # Let's convert the image to be between the correct range.
@@ -45,7 +45,12 @@ def dim_image(image):
     out = None
 
     ### YOUR CODE HERE
-    pass
+    out = image.copy()
+    h,w,t = out.shape
+    for i in range(h):
+        for j in range(w):
+            for k in range(t):
+                out[i, j, k] = 0.5 * out[i, j, k] ** 2
     ### END YOUR CODE
 
     return out
@@ -66,7 +71,8 @@ def convert_to_grey_scale(image):
     out = None
 
     ### YOUR CODE HERE
-    pass
+    out = image.copy()
+    out = color.rgb2gray(out)
     ### END YOUR CODE
 
     return out
@@ -86,7 +92,13 @@ def rgb_exclusion(image, channel):
     out = None
 
     ### YOUR CODE HERE
-    pass
+    out = image.copy()
+    if channel == 'R':
+        out[:, :, 0] = 0
+    if channel == 'B':
+        out[:, :, 1] = 0
+    if channel == 'G':
+        out[:, :, 2] = 0
     ### END YOUR CODE
 
     return out
@@ -104,10 +116,18 @@ def lab_decomposition(image, channel):
     """
 
     lab = color.rgb2lab(image)
-    out = None
+    out = lab
 
     ### YOUR CODE HERE
-    pass
+    if channel == 'L':
+        out[:, :, 1] = 0
+        out[:, :, 2] = 0
+    if channel == 'A':
+        out[:, :, 0] = 0
+        out[:, :, 2] = 0
+    if channel == 'B':
+        out[:, :, 0] = 0
+        out[:, :, 1] = 0
     ### END YOUR CODE
 
     return out
@@ -125,10 +145,18 @@ def hsv_decomposition(image, channel='H'):
     """
 
     hsv = color.rgb2hsv(image)
-    out = None
+    out = hsv
 
     ### YOUR CODE HERE
-    pass
+    if channel == 'H':
+        out[:, :, 1] = 0
+        out[:, :, 2] = 0
+    if channel == 'S':
+        out[:, :, 0] = 0
+        out[:, :, 2] = 0
+    if channel == 'V':
+        out[:, :, 0] = 0
+        out[:, :, 1] = 0
     ### END YOUR CODE
 
     return out
@@ -154,7 +182,9 @@ def mix_images(image1, image2, channel1, channel2):
 
     out = None
     ### YOUR CODE HERE
-    pass
+    im1 = rgb_exclusion(image1, channel1)
+    im2 = rgb_exclusion(image2, channel2)
+    out = np.concatenate((im1, im2), axis = 1)
     ### END YOUR CODE
 
     return out
@@ -183,7 +213,22 @@ def mix_quadrants(image):
     out = None
 
     ### YOUR CODE HERE
-    pass
+    h,w = image.shape[:2]
+    h_h = int(h / 2)
+    w_h = int(w / 2)
+    tl = image[:h_h, :w_h, :].copy()
+    tr = image[:h_h, w_h:w, :].copy()
+    bl = image[h_h:h, :w_h, :].copy()
+    br = image[h_h:h, w_h:w, :].copy()
+    
+    tl = rgb_exclusion(tl, 'R')
+    tr = dim_image(tr)
+    bl[:,:,:] = bl[:,:,:] * 0.5
+    br = rgb_exclusion(br, 'G')
+    
+    t = np.concatenate((tl, tr), axis = 1)
+    b = np.concatenate((bl, br), axis = 1)
+    out = np.concatenate((t, b), axis = 0)
     ### END YOUR CODE
 
     return out
