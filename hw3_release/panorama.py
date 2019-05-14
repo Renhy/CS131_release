@@ -44,7 +44,15 @@ def harris_corners(img, window_size=3, k=0.04):
     dy = filters.sobel_h(img)
 
     ### YOUR CODE HERE
-    pass
+    Ix2 = convolve(dx * dx, window)
+    Iy2 = convolve(dy * dy, window)
+    Ixy = convolve(dx * dy, window)
+    for h in range(H):
+        for w in range(W):
+            M = np.array([[Ix2[h , w], Ixy[h, w]], [Ixy[h, w], Iy2[h, w]]])
+            lamda = np.linalg.svd(M)[1]
+            R = lamda[0] * lamda[1] - k * (lamda[0] + lamda[1]) ** 2
+            response[h, w] = R
     ### END YOUR CODE
 
     return response
@@ -70,7 +78,16 @@ def simple_descriptor(patch):
     """
     feature = []
     ### YOUR CODE HERE
-    pass
+    mean = np.mean(patch)
+    std = np.std(patch)
+    if std == 0:
+        std = 1;
+    
+    H, W = patch.shape
+    patch = (patch - mean) / std
+    for h in range(H):
+        for w in range(W):
+            feature.append(patch[h,w])
     ### END YOUR CODE
     return feature
 
@@ -123,7 +140,14 @@ def match_descriptors(desc1, desc2, threshold=0.5):
     dists = cdist(desc1, desc2)
 
     ### YOUR CODE HERE
-    pass
+    for n in range(N):
+        dis = dists[n, :].copy()
+        min_index = np.argmin(dis)
+        
+        dis = np.sort(dis)
+        if dis[0] < dis[1] * threshold:
+            matches.append((n, min_index))
+    matches = np.asarray(matches)
     ### END YOUR CODE
 
     return matches
@@ -149,7 +173,7 @@ def fit_affine_matrix(p1, p2):
     p2 = pad(p2)
 
     ### YOUR CODE HERE
-    pass
+    return np.linalg.lstsq(p2, p1)[0]
     ### END YOUR CODE
 
     # Sometimes numerical issues cause least-squares to produce the last
@@ -196,7 +220,24 @@ def ransac(keypoints1, keypoints2, matches, n_iters=200, threshold=20):
 
     # RANSAC iteration start
     ### YOUR CODE HERE
-    pass
+    robust_H = 0, 0
+    robust_matches = np.zeros(n_samples)
+    
+    for ite in range(n_iters):
+        np.random.shuffle(matches)
+        p1 = keypoints1[matches[:n_samples,0]]
+        p2 = keypoints2[matches[:n_samples,1]]
+        H = fit_affine_matrix(p1, p2)
+    
+        p1_act = unpad(np.dot(pad(p2), H))
+        delta = p1_act - p1
+        delta = (delta[:,0] ** 2 + delta[:, 1] ** 2) ** 0.5
+        count = np.sum(delta >= threshold)
+        if count > n_inliers:
+            max_inliers = count
+            robust_H = H
+            robust_matches = matches[:n_samples, :]
+    return robust_H, robust_matches
     ### END YOUR CODE
     print(H)
     return H, orig_matches[max_inliers]
