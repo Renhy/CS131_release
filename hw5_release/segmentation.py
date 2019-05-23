@@ -45,7 +45,23 @@ def kmeans(features, k, num_iters=100):
 
     for n in range(num_iters):
         ### YOUR CODE HERE
-        pass
+        over = True
+        for i in range(N):
+            x = features[i]
+            delta = centers - x
+            delta = np.multiply(delta, delta)
+            distances = np.sum(delta, axis=1)
+            index = np.argmin(distances)
+            if not assignments[i] == index:
+                over = False
+                assignments[i] = index
+        if over:
+            print(n)
+            break
+        
+        for j in range(k):
+            fits = features[assignments == j]
+            centers[j] = np.mean(fits, axis=0)
         ### END YOUR CODE
 
     return assignments
@@ -81,7 +97,20 @@ def kmeans_fast(features, k, num_iters=100):
 
     for n in range(num_iters):
         ### YOUR CODE HERE
-        pass
+        delta = np.repeat(features, k, axis=0).reshape(N, k, D)
+        delta = delta - centers
+        delta = np.multiply(delta, delta)
+        delta = np.sum(delta, axis=2)
+        tem = np.argmin(delta, axis=1)
+        
+        if np.equal(assignments, tem).all():
+            print('finished, loop = %d' % (n))
+            return assignments
+        assignments = tem
+        
+        for j in range(k):
+            fits = features[assignments == j]
+            centers[j] = np.mean(fits, axis=0)
         ### END YOUR CODE
 
     return assignments
@@ -154,7 +183,7 @@ def color_features(img):
     features = np.zeros((H*W, C))
 
     ### YOUR CODE HERE
-    pass
+    features = img.reshape(H * W, C)
     ### END YOUR CODE
 
     return features
@@ -183,7 +212,13 @@ def color_position_features(img):
     features = np.zeros((H*W, C+2))
 
     ### YOUR CODE HERE
-    pass
+    coor = np.zeros((H, W, 2))
+    for h in range(H):
+        for w in range(W):
+            coor[h, w] = (h, w)
+    
+    features = np.dstack((img, coor)).reshape(H * W, C + 2)
+    features = (features - np.mean(features)) / np.std(features)
     ### END YOUR CODE
 
     return features
@@ -223,7 +258,13 @@ def compute_accuracy(mask_gt, mask):
 
     accuracy = None
     ### YOUR CODE HERE
-    pass
+    #   (𝑇𝑃+𝑇𝑁)/(𝑃+𝑁)
+    TP = np.sum(mask_gt[mask == 1] == 1)
+    TN = np.sum(mask_gt[mask == 0] == 0)
+    P = np.sum(mask_gt == 1)
+    N = np.sum(mask_gt == 0)
+    
+    accuracy = (TP + TN) / (P + N)
     ### END YOUR CODE
 
     return accuracy
