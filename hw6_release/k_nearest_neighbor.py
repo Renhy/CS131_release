@@ -26,8 +26,12 @@ def compute_distances(X1, X2):
     # in particular you should not use functions from scipy.
     #
     # HINT: Try to formulate the l2 distance using matrix multiplication
-
-    pass
+    D = X1.shape[1]
+    x_m = np.tile(X1, [1, N]).reshape(M, N, D)
+    x_n = np.tile(X2, [M, 1]).reshape(M, N, D)
+    delta = x_m - x_n
+    delta = np.multiply(delta, delta)
+    dists = np.sum(delta, axis=2)
     # END YOUR CODE
 
     assert dists.shape == (M, N), "dists should have shape (M, N), got %s" % dists.shape
@@ -65,7 +69,9 @@ def predict_labels(dists, y_train, k=1):
         # label.
 
         # YOUR CODE HERE
-        pass
+        idxs = np.argsort(dists[i])[:k]
+        labels = y_train[idxs]
+        y_pred[i] = np.unique(labels)[0]
         # END YOUR CODE
 
     return y_pred
@@ -111,7 +117,18 @@ def split_folds(X_train, y_train, num_folds):
 
     # YOUR CODE HERE
     # Hint: You can use the numpy array_split function.
-    pass
+    train_size = X_train.shape[0]
+    for i in range(num_folds):
+        idxs = np.arange(train_size)
+        np.random.shuffle(idxs)
+        
+        idxs_vals = idxs[:validation_size]
+        idxs_trains = idxs[validation_size:]
+        
+        X_trains[i] = X_train[idxs_trains, :]
+        y_trains[i] = y_train[idxs_trains]
+        X_vals[i] = X_train[idxs_vals, :]
+        y_vals[i] = y_train[idxs_vals] 
     # END YOUR CODE
 
     return X_trains, y_trains, X_vals, y_vals
